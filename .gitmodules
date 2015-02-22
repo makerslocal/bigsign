@@ -1,0 +1,3 @@
+[submodule "alphasign"]
+	path = alphasign
+	url = https://github.com/msparks/alphasign
