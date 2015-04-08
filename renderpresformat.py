@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # thanks to http://stackoverflow.com/questions/279237/import-a-module-from-a-relative-path for these next bits.
 import os, sys, inspect
 # realpath() will make your script run, even if you symlink it :)
@@ -27,7 +28,9 @@ def main():
 #		frequency=250, #anything above 0 just means the same freq on our sign
 #		repeat=0) #that is, do not repeat - just do it once
 
-  f = open('../sign/main.new.txt','r')
+  filename = sys.argv[1]
+  #f = open('/home/makers/sign/main.new.txt','r')
+  f = open(filename, 'r')
   t = f.read()
 
   ##handle inline commands.
