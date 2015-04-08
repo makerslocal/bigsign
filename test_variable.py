@@ -24,16 +24,16 @@ def main():
   #sign.clear_memory()
   #return #if you are just clearing the sign's memory this is enough.
   now = datetime.datetime.now()
-  time = alphasign.Time()
-  sign.write(time.set_format(1)) #24-hour clock
-  sign.write(time.set(now.hour, now.minute))
+  signtime = alphasign.Time()
+  sign.write(signtime.set_format(1)) #24-hour clock
+  sign.write(signtime.set(now.hour, now.minute))
   
 #  sign.beep(	duration=0.8,
 #		frequency=250, #anything above 0 just means the same freq on our sign
 #		repeat=0) #that is, do not repeat - just do it once
 
   #t = ' '.join(sys.argv[1:])
-  t = '{green}{clock}'
+  t = '{green}{clock}{blurb}'
 
   ##handle inline commands.
   #sign commands
@@ -50,8 +50,12 @@ def main():
   t=t.replace('{slower}', alphasign.speeds.SPEED_1) #legacy for slowest speed
   t=t.replace('{faster}', alphasign.speeds.SPEED_5) #legacy for fastest speed
   
+  blurb_str = alphasign.String(size=14, label="b")
+  blurb_str.data = "butts lol"
+
   #parts
-  t=t.replace('{clock}', str(now.day) + ' ' + now.strftime('%b') + ' ' + str(now.year) + ' ' + time.call() )
+  t=t.replace('{clock}', str(now.day) + ' ' + now.strftime('%b') + ' ' + str(now.year) + ' ' + signtime.call() )
+  t=t.replace('{blurb}', blurb_str.call())
   
   #print len(t)
   #t = "12345678901234567890123456789012345678901234567890"
@@ -69,14 +73,19 @@ def main():
 					position=alphasign.positions.FILL)
 
   # allocate memory for these objects on the sign
-  #sign.allocate((normal_state,))
+  sign.allocate((normal_state,blurb_str))
 
   # tell sign to only display the counter text
-  #sign.set_run_sequence((normal_state,))
+  sign.set_run_sequence((normal_state,))
 
   # write objects
-  for obj in (normal_state,):
+  for obj in (normal_state,blurb_str):
     sign.write(obj)
+
+  time.sleep(1)
+  blurb_str.data = "asdf"
+  sign.write(blurb_str)
+  time.sleep(1)
 
 if __name__ == "__main__":
   main()
