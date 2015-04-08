@@ -33,7 +33,7 @@ def main():
 #		repeat=0) #that is, do not repeat - just do it once
 
   #t = ' '.join(sys.argv[1:])
-  t = '{green}{clock}{blurb}'
+  t = '{green}' + alphasign.charsets.DOUBLE_HIGH_ON + alphasign.charsets.DOUBLE_WIDE_ON  + '{clock} {blurb}'
 
   ##handle inline commands.
   #sign commands
@@ -50,7 +50,7 @@ def main():
   t=t.replace('{slower}', alphasign.speeds.SPEED_1) #legacy for slowest speed
   t=t.replace('{faster}', alphasign.speeds.SPEED_5) #legacy for fastest speed
   
-  blurb_str = alphasign.String(size=14, label="b")
+  blurb_str = alphasign.String(size=32, label="b")
   blurb_str.data = "butts lol"
 
   #parts
@@ -83,7 +83,7 @@ def main():
     sign.write(obj)
 
   time.sleep(1)
-  blurb_str.data = "asdf"
+  blurb_str.data = "ALERT from IRC!"
   sign.write(blurb_str)
   time.sleep(1)
 
