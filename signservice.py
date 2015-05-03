@@ -50,7 +50,7 @@ def update_from_signcode(t, lbl="A"):
 	#parts
 	now = datetime.datetime.now() #update clock first otherwise the date will never change, idiot
 	t=t.replace('{clock}', str(now.day) + ' ' + now.strftime('%b') + ' ' + str(now.year) + ' ' + signtime.call() )
-	#t=t.replace('{blurb}', blurb_str.call())
+	t=t.replace('{blurb}', blurb_str.call())
 	
 	update_sign(t, lbl)
 	
@@ -84,9 +84,12 @@ if __name__ == "__main__":
 					size=224,
 					mode=alphasign.modes.HOLD,
 					position=alphasign.positions.FILL)
-	sign.allocate((tmp_normal,))
+	blurb_str = alphasign.String(label="b")
+	blurb_str.data = "No Ragrets!"
+	sign.allocate((tmp_normal,blurb_str))
 	sign.set_run_sequence((tmp_normal,))
-	sign.write(tmp_normal)
+	for obj in (tmp_normal,blurb_str):
+		sign.write(obj)
 	now = datetime.datetime.now()
 	signtime = alphasign.Time()
 	sign.write(signtime.set_format(1)) #24-hour clock
