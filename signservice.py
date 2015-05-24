@@ -62,9 +62,9 @@ def update_sign(stuff, lbl="A"): #default to updating normal file.
 					position=alphasign.positions.FILL)
 	sign.write(normal_state)
 
-def update_sign_alert(stuff=""):
+def update_sign_alert(stuff="", source=None):
 	if stuff != "":
-		stuff = "{red}{huge}ALERT from IRC{/huge}\n{green}" + stuff
+		stuff = "{red}{huge}ALERT{/huge}\nfrom " + ( source if ( source != None ) else "IRC" ) + "\n{green}" + stuff
 	return update_from_signcode(stuff, "0")
 
 def update_light(doingit=False):
@@ -127,7 +127,7 @@ if __name__ == "__main__":
 		return "ok"
 	@app.route('/alert')
 	def doalert():
-		update_sign_alert(request.args.get('message')) #workaround til we have an actual message
+		update_sign_alert(request.args.get('message'), request.args.get('source')) #workaround til we have an actual message
 		if request.args.get('nolight') != 'True':
 			update_light(True)
 			t = Timer(10.0, update_light)
