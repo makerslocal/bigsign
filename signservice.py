@@ -84,8 +84,9 @@ if __name__ == "__main__":
 					size=224,
 					mode=alphasign.modes.HOLD,
 					position=alphasign.positions.FILL)
-	blurb_str = alphasign.String(label="b")
-	blurb_str.data = "No Ragrets!"
+	blurb_str = alphasign.String(label="b", size=64)
+	#blurb_str.data = "Since 1983!" + alphasign.constants.CR + "(not really)"
+	blurb_str.data = "Now with 3.947368421% More Members!"
 	sign.allocate((tmp_normal,blurb_str))
 	sign.set_run_sequence((tmp_normal,))
 	for obj in (tmp_normal,blurb_str):
