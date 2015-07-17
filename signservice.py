@@ -126,8 +126,8 @@ if __name__ == "__main__":
 			return
 		nolight = data.get('nolight', False)
 		nosound = data.get('nosound', False)
-		sender = data.get('sender',None)
-		text = data.get('text', None)
+		sender = data.get('sender',"Anonymous")
+		text = data.get('text', "")
 		print "got '{text}' from '{fr}'. (nosound={ns}, nolight={nl})".format(text=text, ns=nosound, nl=nolight, fr=sender)
 		update_sign_alert(text,sender)
 		if not nolight:
