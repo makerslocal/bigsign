@@ -10,6 +10,8 @@ from watchdog.events import LoggingEventHandler
 import time
 import alphasign
 from threading import Timer
+import couchdb
+import ConfigParser
 
 class SignFileEventHandler(LoggingEventHandler):
 	def __init__(self, filename):
@@ -85,7 +87,7 @@ if __name__ == "__main__":
 					position=alphasign.positions.FILL)
 	blurb_str = alphasign.String(label="b", size=64)
 	#blurb_str.data = "Since 1983!" + alphasign.constants.CR + "(not really)"
-	blurb_str.data = "Now with 3.947368421% More Members!"
+	blurb_str.data = "Share it" + alphasign.constants.CR + "with a bro!"
 	sign.allocate((tmp_normal,blurb_str))
 	sign.set_run_sequence((tmp_normal,))
 	for obj in (tmp_normal,blurb_str):
@@ -109,6 +111,26 @@ if __name__ == "__main__":
 	observer = Observer()
 	observer.schedule(event_handler, os.path.dirname(path), recursive=False)
 	observer.start()
+
+	print "rq init..."
+	config = ConfigParser.ConfigParser()
+	config.read("rqsettings.ini")
+	server = couchdb.Server(url=config.get("Server", "url"))
+	message_db = server[config.get("Server", "message_db")]
+	project_name = config.get("Project", "name")
+	def parse_message(message):
+		try:
+			data = message['data']
+		except KeyError:
+			print "Message did not have 'data' field."
+			return
+		nolight = data.get('nolight', True)
+		nosound = data.get('nosound', True)
+		sender = data.get('sender',None)
+		text = data.get('text', None)
+		print "got '{text}' from '{fr}'. (nosound={ns}, nolight={nl})".format(text=text, ns=nosound, nl=nolight, fr=sender)
+	for change in message_db.changes(feed='continuous', since='now', heartbeat=1000, filter='project/by_name', name=project_name, include_docs=True):
+		parse_message(change['doc'])
 
 	print "k bye"
 	#observer.join() #what does this do? I just cargo culted it
