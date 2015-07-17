@@ -124,16 +124,27 @@ if __name__ == "__main__":
 		except KeyError:
 			print "Message did not have 'data' field."
 			return
-		nolight = data.get('nolight', True)
-		nosound = data.get('nosound', True)
+		nolight = data.get('nolight', False)
+		nosound = data.get('nosound', False)
 		sender = data.get('sender',None)
 		text = data.get('text', None)
 		print "got '{text}' from '{fr}'. (nosound={ns}, nolight={nl})".format(text=text, ns=nosound, nl=nolight, fr=sender)
+		update_sign_alert(text,sender)
+		if not nolight:
+			update_light(True)
+			t = Timer(10.0, update_light)
+			t.start()
+		if not nosound:
+			sign.beep(	duration=0.1,
+					frequency=250, #anything above 0 just means the same freq on our sign
+					repeat=1) #that is, do not repeat - just do it once
+		tt = Timer(30.0, update_sign_alert)
+		tt.start()
+		return
+
+	print "ok"
+	#observer.join() #what does this do? I just cargo culted it
+
 	for change in message_db.changes(feed='continuous', since='now', heartbeat=1000, filter='project/by_name', name=project_name, include_docs=True):
 		parse_message(change['doc'])
 
-	print "k bye"
-	#observer.join() #what does this do? I just cargo culted it
-
-	while True:
-		time.sleep(65535)
