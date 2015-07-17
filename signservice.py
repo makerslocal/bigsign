@@ -9,7 +9,6 @@ from watchdog.observers import Observer
 from watchdog.events import LoggingEventHandler
 import time
 import alphasign
-from flask import Flask, request
 from threading import Timer
 
 class SignFileEventHandler(LoggingEventHandler):
@@ -111,36 +110,8 @@ if __name__ == "__main__":
 	observer.schedule(event_handler, os.path.dirname(path), recursive=False)
 	observer.start()
 
-	print "web service init..."
-	app = Flask(__name__)
-	app.config['PROPAGATE_EXCEPTIONS'] = True
-	@app.route('/')
-	def index():
-		return "Help! I'm trapped in the sign computer!"
-	@app.route('/light/on')
-	def dolight():
-		update_light(True)
-		return "ok"
-	@app.route('/light/off')
-	def dontdolight():
-		update_light(False)
-		return "ok"
-	@app.route('/alert')
-	def doalert():
-		update_sign_alert(request.args.get('message'), request.args.get('source')) #workaround til we have an actual message
-		if request.args.get('nolight') != 'True':
-			update_light(True)
-			t = Timer(10.0, update_light)
-			t.start()
-		if request.args.get('nosound') != 'True':
-			sign.beep(	duration=0.1,
-					frequency=250, #anything above 0 just means the same freq on our sign
-					repeat=1) #that is, do not repeat - just do it once
-		tt = Timer(30.0, update_sign_alert)
-		tt.start()
-		return "The light is on. (Any message you wrote will not be shown because that code is broken. #notsorry)"
-	app.run(host='0.0.0.0')
-
 	print "k bye"
 	#observer.join() #what does this do? I just cargo culted it
 
+	while True:
+		time.sleep(65535)
