@@ -51,6 +51,7 @@ def update_from_signcode(t, lbl="A"):
 	#parts
 	now = datetime.datetime.now() #update clock first otherwise the date will never change, idiot
 	t=t.replace('{clock}', str(now.day) + ' ' + now.strftime('%b') + ' ' + str(now.year) + ' ' + signtime.call() )
+	#t=t.replace('{clock}', str(now.day) + ' ' + now.strftime('%b') + ' ' + str(1999) + ' ' + signtime.call() ) #RGN
 	t=t.replace('{blurb}', blurb_str.call())
 	
 	update_sign(t, lbl)
@@ -79,6 +80,7 @@ if __name__ == "__main__":
 	print "sign init..."
 	sign = alphasign.Serial(device="/dev/ttySign")
 	sign.connect()
+	#sign.beep(duration=0.1, frequency=250)
 	#sign.clear_memory() #pretty sure we don't need this.
 	tmp_normal = alphasign.Text(	label="A",
 					data="bigsign init...",
@@ -87,7 +89,12 @@ if __name__ == "__main__":
 					position=alphasign.positions.FILL)
 	blurb_str = alphasign.String(label="b", size=64)
 	#blurb_str.data = "Since 1983!" + alphasign.constants.CR + "(not really)"
-	blurb_str.data = "Share it" + alphasign.constants.CR + "with a bro!"
+	#blurb_str.data = "Share it" + alphasign.constants.CR + "with a bro!"
+	#blurb_str.data = "Now with 1337% more hyperbole!"
+	#blurb_str.data = "Burn down" + alphasign.constants.CR + "for what?!"
+	#blurb_str.data = "Live Free or" + alphasign.constants.CR + "Track Hard"
+	blurb_str.data = "Just an experiment!"
+	#blurb_str.data = alphasign.colors.COLOR_MIX + "RETRO GAME NIGHT" + alphasign.constants.CR + alphasign.colors.YELLOW + "@makerslocal256"
 	sign.allocate((tmp_normal,blurb_str))
 	sign.set_run_sequence((tmp_normal,))
 	for obj in (tmp_normal,blurb_str):
@@ -124,17 +131,17 @@ if __name__ == "__main__":
 		except KeyError:
 			print "Message did not have 'data' field."
 			return
-		nolight = data.get('nolight', False)
-		nosound = data.get('nosound', False)
+		light = data.get('light', True)
+		sound = data.get('sound', True)
 		sender = data.get('sender',"Anonymous")
 		text = data.get('text', "")
-		print "got '{text}' from '{fr}'. (nosound={ns}, nolight={nl})".format(text=text, ns=nosound, nl=nolight, fr=sender)
+		print "got '{text}' from '{fr}'. (sound={s}, light={l})".format(text=text, s=sound, l=light, fr=sender)
 		update_sign_alert(text,sender)
-		if not nolight:
+		if light:
 			update_light(True)
 			t = Timer(10.0, update_light)
 			t.start()
-		if not nosound:
+		if sound:
 			sign.beep(	duration=0.1,
 					frequency=250, #anything above 0 just means the same freq on our sign
 					repeat=1) #that is, do not repeat - just do it once
