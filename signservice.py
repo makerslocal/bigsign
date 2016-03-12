@@ -93,7 +93,8 @@ if __name__ == "__main__":
 	#blurb_str.data = "Now with 1337% more hyperbole!"
 	#blurb_str.data = "Burn down" + alphasign.constants.CR + "for what?!"
 	#blurb_str.data = "Live Free or" + alphasign.constants.CR + "Track Hard"
-	blurb_str.data = "Just an experiment!"
+	#blurb_str.data = "Just an experiment!"
+	blurb_str.data = "Forever and ever, a hundred years," # makerslocal.org!"
 	#blurb_str.data = alphasign.colors.COLOR_MIX + "RETRO GAME NIGHT" + alphasign.constants.CR + alphasign.colors.YELLOW + "@makerslocal256"
 	sign.allocate((tmp_normal,blurb_str))
 	sign.set_run_sequence((tmp_normal,))
