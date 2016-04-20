@@ -67,6 +67,9 @@ def update_sign(stuff, lbl="A"): #default to updating normal file.
 
 def update_sign_alert(stuff="", source=None):
 	if stuff != "":
+		j = json.dumps({'message':stuff,'source':source})
+		print j
+		client.publish("ml256/bigsign/alert",j)
 		stuff = "{red}{huge}ALERT{/huge}\nfrom " + ( source if ( source != None ) else "IRC" ) + "\n{green}" + stuff
 	return update_from_signcode(stuff, "0")
 
