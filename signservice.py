@@ -10,8 +10,9 @@ from watchdog.events import LoggingEventHandler
 import time
 import alphasign
 from threading import Timer
-import couchdb
 import ConfigParser
+import paho.mqtt.client as mqtt
+import json
 
 class SignFileEventHandler(LoggingEventHandler):
 	def __init__(self, filename):
@@ -123,19 +124,17 @@ if __name__ == "__main__":
 	print "rq init..."
 	config = ConfigParser.ConfigParser()
 	config.read("rqsettings.ini")
-	server = couchdb.Server(url=config.get("Server", "url"))
-	message_db = server[config.get("Server", "message_db")]
-	project_name = config.get("Project", "name")
-	def parse_message(message):
-		try:
-			data = message['data']
-		except KeyError:
-			print "Message did not have 'data' field."
-			return
-		light = data.get('light', True)
-		sound = data.get('sound', True)
-		sender = data.get('sender',"Anonymous")
-		text = data.get('text', "")
+	def on_connect(client, userdata, flags, rc):
+		print("Connected to RQ with result code "+str(rc))
+		client.subscribe("ml256/irc/rqtest/command/alert")
+	def on_message(client, userdata, msg):
+		print(msg.topic+" "+str(msg.payload))
+		j = json.loads(msg.payload)
+		print j
+		light = True
+		sound = True
+		sender = j["nick"]
+		text = j["message"]
 		print "got '{text}' from '{fr}'. (sound={s}, light={l})".format(text=text, s=sound, l=light, fr=sender)
 		update_sign_alert(text,sender)
 		if light:
@@ -149,10 +148,12 @@ if __name__ == "__main__":
 		tt = Timer(30.0, update_sign_alert)
 		tt.start()
 		return
+		
+	client = mqtt.Client()
+	client.on_connect = on_connect
+	client.on_message = on_message
+	client.connect(config.get("MQTT","host"))
 
 	print "ok"
-	#observer.join() #what does this do? I just cargo culted it
-
-	for change in message_db.changes(feed='continuous', since='now', heartbeat=1000, filter='project/by_name', name=project_name, include_docs=True):
-		parse_message(change['doc'])
+	client.loop_forever()
 
