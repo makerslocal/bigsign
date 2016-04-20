@@ -69,7 +69,7 @@ def update_sign_alert(stuff="", source=None):
 	if stuff != "":
 		j = json.dumps({'message':stuff,'source':source})
 		print j
-		client.publish("ml256/bigsign/alert",j)
+		client.publish(config.get("MQTT","pub"),j)
 		stuff = "{red}{huge}ALERT{/huge}\nfrom " + ( source if ( source != None ) else "IRC" ) + "\n{green}" + stuff
 	return update_from_signcode(stuff, "0")
 
@@ -81,6 +81,10 @@ def update_light(doingit=False):
 
 if __name__ == "__main__":
 
+	print "config init..."
+	config = ConfigParser.ConfigParser()
+	config.read("settings.ini")
+	
 	print "sign init..."
 	sign = alphasign.Serial(device="/dev/ttySign")
 	sign.connect()
@@ -92,14 +96,8 @@ if __name__ == "__main__":
 					mode=alphasign.modes.HOLD,
 					position=alphasign.positions.FILL)
 	blurb_str = alphasign.String(label="b", size=64)
-	#blurb_str.data = "Since 1983!" + alphasign.constants.CR + "(not really)"
-	#blurb_str.data = "Share it" + alphasign.constants.CR + "with a bro!"
-	#blurb_str.data = "Now with 1337% more hyperbole!"
-	#blurb_str.data = "Burn down" + alphasign.constants.CR + "for what?!"
-	#blurb_str.data = "Live Free or" + alphasign.constants.CR + "Track Hard"
-	#blurb_str.data = "Just an experiment!"
-	blurb_str.data = "Forever and ever, a hundred years," # makerslocal.org!"
-	#blurb_str.data = alphasign.colors.COLOR_MIX + "RETRO GAME NIGHT" + alphasign.constants.CR + alphasign.colors.YELLOW + "@makerslocal256"
+	#blurb_str.data = "Forever and ever, a hundred years," # makerslocal.org!"
+	blurb_str.data = config.get("Sign","blurb")
 	sign.allocate((tmp_normal,blurb_str))
 	sign.set_run_sequence((tmp_normal,))
 	for obj in (tmp_normal,blurb_str):
@@ -125,11 +123,9 @@ if __name__ == "__main__":
 	observer.start()
 
 	print "rq init..."
-	config = ConfigParser.ConfigParser()
-	config.read("rqsettings.ini")
 	def on_connect(client, userdata, flags, rc):
 		print("Connected to RQ with result code "+str(rc))
-		client.subscribe("ml256/irc/rqtest/command/alert")
+		client.subscribe(config.get("MQTT","sub"))
 	def on_message(client, userdata, msg):
 		print(msg.topic+" "+str(msg.payload))
 		j = json.loads(msg.payload)
