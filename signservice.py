@@ -125,8 +125,11 @@ if __name__ == "__main__":
 	print "rq init..."
 	def on_connect(client, userdata, flags, rc):
 		print("Connected to RQ with result code "+str(rc))
-		client.subscribe(config.get("MQTT","sub"))
-	def on_message(client, userdata, msg):
+		client.subscribe(config.get("MQTT","alert_sub"))
+		client.subscribe(config.get("MQTT","info_sub"))
+		client.subscribe(config.get("MQTT","cascade_withdrawal_sub"))
+		client.subscribe(config.get("MQTT","cascade_error_sub"))
+	def on_alert_message(client, userdata, msg):
 		print(msg.topic+" "+str(msg.payload))
 		j = json.loads(msg.payload)
 		print j
@@ -143,14 +146,53 @@ if __name__ == "__main__":
 		if sound:
 			sign.beep(	duration=0.1,
 					frequency=250, #anything above 0 just means the same freq on our sign
-					repeat=1) #that is, do not repeat - just do it once
+					repeat=1) #repeat once - total of 2 beeps
 		tt = Timer(30.0, update_sign_alert)
+		tt.start()
+		return
+	def on_info_message(client, userdata, msg):
+		print(msg.topic+" "+str(msg.payload))
+		j = json.loads(msg.payload)
+		update_sign_alert(j["message"], "", "Info")
+		sign.beep(duration=0.1,frequency=250,repeat=0)
+		tt = Timer(30.0, update_sign_alert)
+		tt.start()
+		return
+	def on_cascade_withdrawal_message(client,userdata,msg):
+		print(msg.topic+" "+str(msg.payload))
+		j=json.loads(msg.payload)
+		print j
+		try:
+			update_sign_notify("Remaining balance: $" + str(format(j["balance"],'.2f')), j["user"], "KACHUNK")
+			if j["balance"] <= 2:
+				sign.beep(duration=0.1,frequency=250)
+		except:
+			pass
+		tt = Timer(30.0, update_sign_notify)
+		tt.start()
+		return
+	def on_cascade_error_message(client,userdata,msg):
+		print(msg.topic + " " + str(msg.payload))
+		j = json.loads(msg.payload)
+		print j
+		try:
+			detail = j["message"] + " :("
+			if j["error"] == "NO_USER_FUNDS":
+				detail = "I know who you are, " + j["user"] + ", you just don't have any money!"
+			update_sign_notify(detail,"","NOT KACHUNK")
+			sign.beep(duration=0.1,frequency=250)
+		except:
+			pass
+		tt = Timer(30.0,update_sign_notify)
 		tt.start()
 		return
 		
 	client = mqtt.Client()
 	client.on_connect = on_connect
-	client.on_message = on_message
+	client.message_callback_add(config.get("MQTT","alert_sub"),on_alert_message)
+	client.message_callback_add(config.get("MQTT","info_sub"),on_info_message)
+	client.message_callback_add(config.get("MQTT","cascade_withdrawal_sub"),on_cascade_withdrawal_message)
+	client.message_callback_add(config.get("MQTT","cascade_error_sub"),on_cascade_error_message)
 	client.connect(config.get("MQTT","host"))
 
 	print "ok"
