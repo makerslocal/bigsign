@@ -34,6 +34,11 @@ def update_from_file(filename):
 
 def update_from_signcode(t, lbl="A"):
 	##handle inline commands.
+	#parts
+	now = datetime.datetime.now() #update clock first otherwise the date will never change, idiot
+	t=t.replace('{clock}', str(now.day) + ' ' + now.strftime('%b') + ' ' + str(now.year) + ' ' + signtime.call() )
+	#t=t.replace('{clock}', str(now.day) + ' ' + now.strftime('%b') + ' ' + str(1999) + ' ' + signtime.call() ) #RGN
+	t=t.replace('{blurb}', blurb_str.call())
 	#sign commands
 	t=t.replace('{descenders}', alphasign.charsets.TRUE_DESCENDERS_ON) #larger line height to allow characters to go below the bottom (gjq)
 	#legacy
@@ -49,11 +54,6 @@ def update_from_signcode(t, lbl="A"):
 	t=t.replace('{/huge}', alphasign.charsets.DOUBLE_HIGH_OFF + alphasign.charsets.DOUBLE_WIDE_OFF)
 	#finally, line feed.
 	t=t.replace('\n', alphasign.constants.CR)
-	#parts
-	now = datetime.datetime.now() #update clock first otherwise the date will never change, idiot
-	t=t.replace('{clock}', str(now.day) + ' ' + now.strftime('%b') + ' ' + str(now.year) + ' ' + signtime.call() )
-	#t=t.replace('{clock}', str(now.day) + ' ' + now.strftime('%b') + ' ' + str(1999) + ' ' + signtime.call() ) #RGN
-	t=t.replace('{blurb}', blurb_str.call())
 	
 	update_sign(t, lbl)
 	
@@ -65,13 +65,20 @@ def update_sign(stuff, lbl="A"): #default to updating normal file.
 					position=alphasign.positions.FILL)
 	sign.write(normal_state)
 
-def update_sign_alert(stuff="", source=None):
-	if stuff != "":
+def update_sign_alert(stuff="", source=None, type="ALERT"):
+	if stuff != "" and type == "ALERT":
 		j = json.dumps({'message':stuff,'source':source})
 		print j
-		client.publish(config.get("MQTT","pub"),j)
-		stuff = "{red}{huge}ALERT{/huge}\nfrom " + ( source if ( source != None ) else "IRC" ) + "\n{green}" + stuff
+		if type == "ALERT":
+			client.publish(config.get("MQTT","pub"),j)
+	if stuff != "" or type != "ALERT":
+		stuff = "{red}{huge}" + type + "{/huge}\n" + ( source if ( source != None ) else "IRC" ) + "\n{green}" + stuff
 	return update_from_signcode(stuff, "0")
+
+def update_sign_notify(stuff="", source=None, type="NOTICE"):
+	if stuff != "" or source != None:
+		stuff = "{orange}{huge}" + type + "{/huge}\n" + source + "\n{green}" + stuff
+	return update_from_signcode(stuff,"0")
 
 def update_light(doingit=False):
 	if doingit:
@@ -97,7 +104,8 @@ if __name__ == "__main__":
 					position=alphasign.positions.FILL)
 	blurb_str = alphasign.String(label="b", size=64)
 	#blurb_str.data = "Forever and ever, a hundred years," # makerslocal.org!"
-	blurb_str.data = config.get("Sign","blurb")
+	blurb_str.data = config.get("Sign","blurb").replace('\\n', alphasign.constants.CR)
+	#blurb_str.data = alphasign.colors.COLOR_MIX + "PIG ROAST" + alphasign.constants.CR + alphasign.colors.YELLOW + "@makerslocal256"
 	sign.allocate((tmp_normal,blurb_str))
 	sign.set_run_sequence((tmp_normal,))
 	for obj in (tmp_normal,blurb_str):
