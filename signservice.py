@@ -161,7 +161,11 @@ if __name__ == "__main__":
 	def on_info_message(client, userdata, msg):
 		print(msg.topic+" "+str(msg.payload))
 		j = json.loads(msg.payload)
-		update_sign_alert(j["message"], "", "Info")
+		print "Info msg: " + str(j)
+		
+		light = True
+		sound = True
+		update_sign_alert(j["message"], j["source"], "Info")
 		sign.beep(duration=0.1,frequency=250,repeat=0)
 		tt = Timer(30.0, update_sign_alert)
 		tt.start()
